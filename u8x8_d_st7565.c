@@ -1,4 +1,5 @@
-#define BIGBLUE12864
+//#define BIGBLUE12864
+//#define INVERSE_DISPLAY
 
 /*
 
@@ -299,7 +300,12 @@ static const uint8_t u8x8_d_st7565_64128n_init_seq[] = {
   U8X8_C(0x028 | 0x07),            /* power control: turn on voltage follower */
   U8X8_C(0x010),                   /* Set V0 voltage resistor ratio. Setting for controlling brightness of Displaytech 64128N */
 						  /* 19 Jul 17: Not sure if this is true, cmd 0x1? is used to set the column */
+#ifdef INVERSE_DISPLAY
+  U8X8_C(0x0a7),                   /* display reverse, bit val 1: LCD pixel off. */
+#else
   U8X8_C(0x0a6),                   /* display normal, bit val 0: LCD pixel off. */
+#endif
+
   U8X8_C(0x081),      	           /* set contrast */
   U8X8_C(0x01e),        	       /* Contrast value. Setting for controlling brightness of Displaytech 64128N */
   //U8X8_C(0x0af),		           /* display on */
@@ -653,7 +659,12 @@ static const uint8_t u8x8_d_st7565_lm6059_init_seq[] = {
   // U8X8_C(0x0a0),		                /* ADC set to reverse */
   // U8X8_C(0x0c8),		                /* common output mode */
 
-  U8X8_C(0x0a6),		                /* display normal, bit val 0: LCD pixel off. */
+#ifdef INVERSE_DISPLAY
+  U8X8_C(0x0a7),                   /* display reverse, bit val 1: LCD pixel off. */
+#else
+  U8X8_C(0x0a6),                   /* display normal, bit val 0: LCD pixel off. */
+#endif
+
   U8X8_C(0x0a3),		                /* LCD bias 1/9 */
   U8X8_C(0x02f),		                /* all power  control circuits on (regulator, booster and follower) */
   U8X8_CA(0x0f8, 0x000),		/* set booster ratio to 4x (ST7567 feature) */

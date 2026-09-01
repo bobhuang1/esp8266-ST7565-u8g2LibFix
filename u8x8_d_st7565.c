@@ -2,6 +2,26 @@
 //#define INVERSE_DISPLAY
 
 /*
+  ---------------------------------------------------------------------------
+  LOCAL PATCH (see README.md for full details)
+
+  This is olikraus/u8g2's u8x8_d_st7565.c with two changes to the Displaytech
+  64128N init sequence/geometry, needed to drive a "Mini 12864" ST7565 board
+  correctly (the stock values are tuned for the "New Big Blue" 12864 variant,
+  selectable above via BIGBLUE12864):
+
+    1. u8x8_d_st7565_64128n_init_seq: display start line command changed from
+       0x040 to 0x060.
+    2. u8x8_st7565_64128n_display_info: default_x_offset changed from 4 to 3.
+
+  Everything else in this file is unmodified upstream u8g2 code (BSD-2-Clause,
+  see the license block immediately below). To use: drop this file in place of
+  the stock u8x8_d_st7565.c inside your installed u8g2 library
+  (Arduino/libraries/U8g2/src/clib/) - see README.md.
+  ---------------------------------------------------------------------------
+*/
+
+/*
 
   u8x8_d_st7565.c
   also includes support for nt7534

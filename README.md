@@ -1,30 +1,59 @@
 # esp8266-ST7565-u8g2LibFix
 
-A small local patch to [u8g2](https://github.com/olikraus/u8g2)'s ST7565
-display driver (`u8x8_d_st7565.c`), fixing the display geometry for a
-**"Mini 12864"** ST7565-based 128x64 LCD module that doesn't quite match the
-stock driver's Displaytech 64128N timing.
-
-## The problem
-
-u8g2's `u8x8_d_st7565_64128n` driver already supports two board variants via
-the `BIGBLUE12864` compile-time flag ("New Big Blue 12864" vs. the smaller
-"Mini" board), but the values baked in for the Mini variant produce a shifted
-or garbled display on at least one common "Mini 12864" module in the wild.
+Fixes the display geometry of a **"Mini 12864"** ST7565-based 128x64 LCD
+module when driven by [u8g2](https://github.com/olikraus/u8g2)'s Displaytech
+64128N driver (`U8G2_ST7565_64128N_...`). With stock u8g2 the picture on this
+panel is shifted or garbled; the "New Big Blue 12864" panel works with stock
+u8g2 as is.
 
 ## The fix
 
-Two values in `u8x8_d_st7565.c`, only in the non-`BIGBLUE12864` (Mini) code path:
+Two values differ from stock u8g2:
 
-| What | Stock u8g2 | This patch |
+| What | Stock u8g2 | Mini 12864 |
 |---|---|---|
-| Display start line command (`u8x8_d_st7565_64128n_init_seq`) | `0x040` | `0x060` |
-| `default_x_offset` (`u8x8_st7565_64128n_display_info`) | `4` | `3` |
+| Display start line command (64128N init sequence) | `0x40` | `0x60` |
+| Column offset (`default_x_offset`) | `4` | `3` |
 
-Everything else in the file is unmodified upstream u8g2 source, under u8g2's
-own BSD-2-Clause license (see the header inside the file).
+## Recommended: apply it at runtime
 
-## How to use it
+No library patch is needed. Use the stock u8g2 library and set both values
+right after `begin()`:
+
+```cpp
+display.begin();
+display.getU8x8()->x_offset = 3;  // column offset for the Mini panel
+display.sendF("c", 0x60);         // display start line
+```
+
+[`examples/MiniFix/MiniFix.ino`](examples/MiniFix/MiniFix.ino) is a complete
+sketch. Checked against u8g2 2.36.5. Call it again after `setFlipMode()`,
+which resets the column offset, and after any re-`begin()`.
+
+This survives u8g2 updates, keeps upstream fixes, and lets one sketch choose
+the panel at runtime.
+
+## Legacy: the patched library file
+
+`u8x8_d_st7565.c` is the older approach: a copy of u8g2's driver file with the
+values above. It predates every published u8g2 tag, so **do not copy it over a
+current u8g2 install**: current releases declare ST7565 variants this file
+does not define (link errors), and it would revert upstream fixes to the other
+drivers in the file.
+
+The file adds two switches of its own; neither exists in upstream u8g2:
+
+- `BIGBLUE12864` selects the stock values (for the Big Blue panel). Without it
+  the file uses the Mini values.
+- `INVERSE_DISPLAY` makes the `64128n` and `lm6059` drivers start in reverse
+  video (`0xA7` instead of `0xA6`). The runtime equivalent is
+  `display.sendF("c", 0xa7);`.
+
+The patched file keeps u8g2's BSD-2-Clause license (see its header). The
+GPL-3.0 `LICENSE` covers only this repository's own files (README, FIX.md,
+the example).
+
+### Installing the legacy file (old u8g2 only)
 
 1. Locate your installed u8g2 library's clib folder, typically:
    `Documents/Arduino/libraries/U8g2/src/clib/u8x8_d_st7565.c`

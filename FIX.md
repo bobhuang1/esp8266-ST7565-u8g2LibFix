@@ -34,5 +34,8 @@ builds.
 ## Quick check
 
 After re-applying, `diff` this repo's file against the freshly installed
-library copy: the only differences must be the two lines above plus the
-explanatory comment block at the top of this repo's file.
+library copy: the differences should be the two edits above, the `BIGBLUE12864`
+and `INVERSE_DISPLAY` switches (the latter changes the `64128n` and `lm6059`
+init sequences), and the comment block at the top of this repo's file.
+
+Prefer the runtime fix in the README, which needs no library edits at all.
